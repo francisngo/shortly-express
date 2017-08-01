@@ -18,7 +18,8 @@ db.knex.schema.hasTable('urls').then(function(exists) {
       link.string('title', 255);
       link.integer('visits');
       link.timestamps();
-      link.integer('users_id').reference(users.id);
+      link.integer('userId');
+      // link.integer('users_id').reference(users.id);
     }).then(function (table) {
       console.log('Created Table', table);
     });
@@ -29,7 +30,7 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
   if (!exists) {
     db.knex.schema.createTable('clicks', function (click) {
       click.increments('id').primary();
-      click.integer('link_id').reference(urls.id);
+      click.integer('linkId'); //foreign key to url's id
       click.timestamps();
     }).then(function (table) {
       console.log('Created Table', table);
