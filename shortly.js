@@ -31,38 +31,48 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+console.log('hi');
 app.use(session({
   secret: 'cake is a lie', //required
   resave: false, //forces session to be saved back to session store
   saveUninitialized: true, //forces a session identifier cookie to be set on every response
-  cookie: { secure: true } //specifies boolean value for Secure Set-Cookie attribut
+  // cookie: { secure: true } //specifies boolean value for Secure Set-Cookie attribut
 }));
-
+// the is a req.sessionID is unique for every session. new one loads on refresh
+  // not sure what its for
 
 
 app.get('/', function(req, res) {
-  // console.log('req.session: ', req.session);
-  var doesExist = false;
-  // if has user exists (express/sessions) then index else login
 
-  // if (doesExist) {
-  res.render('index');
-  // } else {
-    // res.status(200).redirect('login');
-  // }
+  req.session.isValid = req.session.isValid || false;
+  var isValid = req.session.isValid;
+  console.log('GET req.session.isValid: ', isValid);
+  // if has user exists (express/sessions) then index else login
+  // check sessions if logged in, if so => doesExist = true
+  if (isValid) { //because sessions === logged in (doesExit === true)
+    res.render('index');
+  } else {
+    res.status(200).redirect('login');
+  }
 });
 
 app.get('/create', function(req, res) {
-  // var doesExist = false;
-  // // if has user exists (express/sessions) then index else login
-  // if (doesExist) {
-  res.render('create');
-  // } else {
-  //   res.status(200).redirect('login');
-  // }
+  req.session.isValid = req.session.isValid || false;
+  var isValid = req.session.isValid;
+  // if has user exists (express/sessions) then index else login
+  if (isValid) {
+    res.render('index');
+  } else {
+    res.status(200).redirect('login');
+  }
 });
 
 app.get('/links', function(req, res) {
+  // req.session.isValid = req.session.isValid || false;
+  // var isValid = req.session.isValid;
+  // if (isValid) {
+  //   res.redirect('login');
+  // }
   Links.reset().fetch().then(function(links) {
     res.status(200).send(links.models);
   });
@@ -130,17 +140,17 @@ app.post('/signup', function(req, res) {
       };
       Users.create(data)
         .then(function() {
+          req.session.isValid = true;
           res.status(201).redirect('/');
         });
     }
   });
-  console.log('signed up successfully');
+  // console.log('signed up successfully');
 });
 
 
 // OUR LOGIN =================/////////
 app.post('/login', function(req, res) {
-  // console.log('POST LOGIN LINE 151');
   var username = req.body.username;
   var passwordInput = req.body.password; //record password
 
@@ -152,6 +162,9 @@ app.post('/login', function(req, res) {
       var hash = bcrypt.hashSync(passwordInput, salt);
       var passDoesMatch = savedPass === hash;
       if (passDoesMatch) {
+        console.log('LOGIN POSt req.session', req.session.isValid);
+        req.session.isValid = true;
+        console.log('LOGIN POSt req.session', req.session.isValid);
         res.status(201).redirect('/');
       } else {
         res.status(302).redirect('/login');
@@ -164,7 +177,10 @@ app.post('/login', function(req, res) {
 });
 
 // OUR LOGOUT =================/////////
-
+app.get('/logout', function(req, res) {
+  req.session.isValid = false;
+  res.redirect('/login');
+});
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
