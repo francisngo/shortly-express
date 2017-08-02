@@ -14,15 +14,11 @@ var Link = db.Model.extend({
   initialize: function() {
     this.on('creating', function(model, attrs, options) {
       var shasum = crypto.createHash('sha1');
-      console.log('link.js RANNN');
-      console.log('=-----------------------=');
       // console.log({shasum});
       shasum.update(model.get('url'));
 
       // console.log('model.get(\'url\')', model.get('url'));
       // console.log('shasum.digest(\'hex\').slice(0, 5)', shasum.digest('hex').slice(0, 5));
-
-      console.log('=-----------------------=');
 
       model.set('code', shasum.digest('hex').slice(0, 5));
     });
